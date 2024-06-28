@@ -1,0 +1,82 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+android {
+    namespace 'com.herohan.addresssanitizerdemo'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.herohan.addresssanitizerdemo"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        externalNativeBuild {
+            cmake {
+                // Can also use system or none as ANDROID_STL.
+                arguments "-DANDROID_ARM_MODE=arm", "-DANDROID_STL=c++_shared", "-DSANITIZE=asan"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        asan {
+            initWith debug
+            debuggable true
+            packagingOptions {
+                jniLibs {
+                    // Without legacy packaging, the Android package manager
+                    // will not extract the libraries from the APK, and the app
+                    // will instead load them directly from the APK. That saves
+                    // space on disk so is generally preferable, but ASan
+                    // doesn't work in that configuration, so we need to
+                    // opt-out of the new behavior.
+                    //
+                    // Note that this won't actually do anything to the sample
+                    // in its default configuration. The sample uses minSdk 21,
+                    // and legacy packaging is the default for all builds below
+                    // minSdk 23.
+                    useLegacyPackaging true
+                }
+            }
+            externalNativeBuild {
+                cmake {
+                    arguments "-DANDROID_ARM_MODE=arm", "-DANDROID_STL=c++_shared", "-DSANITIZE=asan"
+                }
+            }
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+        }
+//        ndkBuild {
+//            path file('src/main/cpp/Android.mk')
+//        }
+    }
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.constraintlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}
